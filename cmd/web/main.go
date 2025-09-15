@@ -27,6 +27,7 @@ func main() {
 		_ = json.NewEncoder(writer).Encode(map[string]interface{}{
 			"hostname": hostname,
 			"time":     time.Now(),
+			"message":  "New attribute message",
 		})
 	}
 
