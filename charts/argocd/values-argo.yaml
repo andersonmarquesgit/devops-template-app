@@ -1,0 +1,24 @@
+configs:
+  params:
+    "server.insecure": true   # backend em HTTP
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    hosts:
+      - argocd.localtest.me
+    paths:
+      - /
+    pathType: Prefix
+    tls: false
+
+# garante que nada tente criar/esperar cert
+certificate:
+  enabled: false
+
+
+# helm upgrade --install argocd argo/argo-cd -n argocd -f values-argo.yaml --wait --reset-values

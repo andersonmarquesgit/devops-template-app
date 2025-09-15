@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-template-app
+spec:
+  selector:
+    app: devops-template-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80          # expõe 80 no Service
+      targetPort: 8080  # seu app escuta em 8080
