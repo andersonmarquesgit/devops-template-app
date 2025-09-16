@@ -52,19 +52,30 @@ jobs:
     needs: ci
     runs-on: self-hosted
     steps:
-      - name: Install argocd
+      - name: Install Argo CD CLI
         shell: bash
         run: |
-          curl -ksSL -o argocd https://argocd-server.argocd/download/argocd-linux-amd64
-          chmod +x argocd
-          sudo mv ./argocd /usr/local/bin/argocd
+          curl -sSL -o /tmp/argocd \
+            https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          # instala em /usr/local/bin se tiver sudo; se não, cai para ~/.local/bin
+          install -m 0755 /tmp/argocd /usr/local/bin/argocd || {
+            mkdir -p "$HOME/.local/bin"
+            install -m 0755 /tmp/argocd "$HOME/.local/bin/argocd"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            }
 
-      - name: Argocd app sync
+      - name: Argo CD login + sync
         shell: bash
         run: |
-          argocd login argocd-server.argocd \
-            --insecure  \
-            --grpc-web \
+          # Service interno do cluster (porta 80, HTTP)
+          ARGOCD_SERVER="argocd-server.argocd.svc.cluster.local:80"
+          
+          argocd login "$ARGOCD_SERVER" \
             --username admin \
-            --password  ${{ secrets.ARGOCD_PASSWORD }}
-          argocd app sync devops-template-app
+            --password '${{ secrets.ARGOCD_PASSWORD }}' \
+            --grpc-web \
+            --plaintext
+          
+          # sincroniza e espera ficar saudável
+          argocd app sync devops-template-app --timeout 300
+          argocd app wait devops-template-app --health --timeout 300
