@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read  # necessário para metadata-action ler refs/labels
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +53,55 @@ jobs:
   cd:
     needs: ci
     runs-on: self-hosted
+    permissions:
+      contents: write          # <-- necessário para commitar/pushar
+    env:
+      IMAGE_REPO: andersonmarquesdocker/devops-template-app
+      IMAGE_TAG: ${{ needs.ci.outputs.image_tag }}
+      CHART_PATH: charts/devops-template-app
+      VALUES_FILE: charts/devops-template-app/values.yaml
+
     steps:
+      - name: Checkout repo (com credenciais p/ push)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # garante histórico completo p/ push
+          persist-credentials: true
+
+      - name: Instalar yq (editor YAML)
+        run: |
+          curl -sSL -o /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+
+      - name: Modificar values.yaml (atualizar tag da imagem)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Atualizando ${VALUES_FILE} para tag ${IMAGE_TAG} ..."
+          yq -i '.image.tag = strenv(IMAGE_TAG)' "${VALUES_FILE}"
+          # opcional: garantir repositório
+          yq -i '.image.repository = strenv(IMAGE_REPO)' "${VALUES_FILE}"
+
+          echo "Diff:"
+          git --no-pager diff -- ${VALUES_FILE} || true
+
+      - name: Commit & push (só se houve mudança)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- ${VALUES_FILE}; then
+            echo "Sem mudanças no ${VALUES_FILE}; pulando commit/push."
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "${VALUES_FILE}"
+          git commit -m "ci: bump image to ${IMAGE_REPO}:${IMAGE_TAG} [skip ci]"
+          git push
+
       - name: Install Argo CD CLI
         shell: bash
         run: |

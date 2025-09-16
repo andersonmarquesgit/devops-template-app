@@ -1,6 +1,11 @@
+global:
+  domain: argocd.localtest.me     # opcional, ajuda a padronizar
+
 configs:
   params:
     "server.insecure": true   # backend em HTTP
+  cm:
+    url: http://argocd.localtest.me
 
 server:
   ingress:
