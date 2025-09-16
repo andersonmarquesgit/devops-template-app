@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: read  # necessário para metadata-action ler refs/labels
     outputs:
-      image_tag: ${{ steps.meta.outputs.version }}
+      image_tag: ${{ steps.imgtag.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            andersonmarquesdocker/devops-template-app:${{ steps.imgtag.outputs.tag }}
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
