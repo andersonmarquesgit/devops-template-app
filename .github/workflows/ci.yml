@@ -68,23 +68,25 @@ jobs:
           fetch-depth: 0        # garante histórico completo p/ push
           persist-credentials: true
 
-      - name: Instalar yq (editor YAML)
-        run: |
-          curl -sSL -o /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x /usr/local/bin/yq
-
-      - name: Modificar values.yaml (atualizar tag da imagem)
+      - name: Install yq (no sudo)
         shell: bash
         run: |
-          set -euo pipefail
-          echo "Atualizando ${VALUES_FILE} para tag ${IMAGE_TAG} ..."
-          yq -i '.image.tag = strenv(IMAGE_TAG)' "${VALUES_FILE}"
-          # opcional: garantir repositório
-          yq -i '.image.repository = strenv(IMAGE_REPO)' "${VALUES_FILE}"
+          YQ_VER=v4.44.3
+          YQ_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VER}/yq_linux_amd64"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "$YQ_URL" -o "$HOME/.local/bin/yq"
+          chmod +x "$HOME/.local/bin/yq"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-          echo "Diff:"
-          git --no-pager diff -- ${VALUES_FILE} || true
+      - name: Bump values.yaml with new image tag
+        shell: bash
+        run: |
+          yq -i '.image.tag = env(IMAGE_TAG)' charts/devops-template-app/values.yaml
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add charts/devops-template-app/values.yaml
+          git commit -m "chore(cd): bump image tag to ${IMAGE_TAG} [skip ci]" || echo "Nothing to commit"
+          git push
 
       - name: Commit & push (só se houve mudança)
         shell: bash
