@@ -91,7 +91,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add charts/devops-template-app/values.yaml
-          git commit -m "chore(cd): bump image tag to ${IMAGE_TAG} [skip ci]" || echo "Nothing to commit"
+          git commit -m "bump image tag to ${IMAGE_TAG}" || echo "Nothing to commit"
           git push
 
       - name: Commit & push (só se houve mudança)

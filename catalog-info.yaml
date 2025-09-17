@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: devops-template-app
+  description: Devops Template App that displays the time.
+  annotations:
+    github.com/project-slug: andersonmarquesgit/devops-template-app
+spec:
+  type: service
+  owner: andersonmarques.ci@gmail.com
+  lifecycle: experimental
