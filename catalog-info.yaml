@@ -7,5 +7,5 @@ metadata:
     github.com/project-slug: andersonmarquesgit/devops-template-app
 spec:
   type: service
-  owner: andersonmarques.ci@gmail.com
+  owner: development
   lifecycle: experimental
