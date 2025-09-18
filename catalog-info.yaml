@@ -5,6 +5,7 @@ metadata:
   description: Devops Template App that displays the time.
   annotations:
     github.com/project-slug: andersonmarquesgit/devops-template-app
+    backstage.io/techdocs-ref: dir:.
 spec:
   type: service
   owner: development

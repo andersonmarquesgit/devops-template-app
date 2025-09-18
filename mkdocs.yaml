@@ -1,0 +1,15 @@
+site_name: 'Devops Template App'
+site_description: 'Main documentation for the devops-template-app'
+repo_url: https://github.com/andersonmarquesgit/devops-template-app
+edit_uri: edit/main/docs
+
+plugins:
+  - techdocs-core
+  - redirects:
+      redirect_maps:
+        'index.md': 'docs/index.md'
+
+# For sidebar navigation on https://backstage.io/, see `microsite/sidebars.js`
+nav:
+  - Overview:
+      - Getting started: 'docs/index.md'
