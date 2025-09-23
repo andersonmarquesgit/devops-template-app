@@ -5,7 +5,14 @@ configs:
   params:
     "server.insecure": true   # backend em HTTP
   cm:
+    admin.enabled: true
     url: http://argocd.localtest.me
+  rbac:
+    policy.default: role:admin
+    policy.csv: |
+      g, admin, role:admin
+      p, role:admin, applications, *, */*, allow
+      p, role:admin, projects, *, *, allow
 
 server:
   ingress:
