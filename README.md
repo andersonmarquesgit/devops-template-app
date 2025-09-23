@@ -179,7 +179,6 @@ Definições adotadas para novos projetos via Backstage:
 
 ## Docs
 - https://argo-cd.readthedocs.io/en/stable/operator-manual/installation/
-<<<<<<< Updated upstream
 - https://github.com/actions/actions-runner-controller/blob/master/docs/quickstart.md
 - https://backstage.io/docs/next/getting-started/
 - https://backstage.io/docs/auth/
