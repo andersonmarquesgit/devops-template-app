@@ -49,7 +49,7 @@ Garanta que o **Ingress** esteja configurado como LoadBalancer:
 kubectl -n ingress-nginx get svc ingress-nginx-controller -o wide
 ```
 
-## ## 2. ArgoCD
+## 2. ArgoCD
 
 Instale o ArgoCD:
 ```bash
