@@ -23,7 +23,8 @@ This repository contains a step-by-step guide to configure a development environ
 
 Start cluster::
 ```bash  
-minikube start --driver=docker```  
+minikube start --driver=docker
+``` 
 If tunnel gets stuck::  
 ```bash  
   
@@ -42,18 +43,36 @@ Check Ingress as LoadBalancer:
 
 ```bash  
 kubectl -n ingress-nginx get svc ingress-nginx-controller -o wide
+``` 
+
+Habilitar o Ingress (cria o ns ingress-nginx)
+
+```bash  
+minikube addons enable ingress
+# espere ficar "Running"
+kubectl -n ingress-nginx rollout status deploy/ingress-nginx-controller
+kubectl -n ingress-nginx get pods
 ```  
 
 ## 2. ArgoCD
 
-Install ArgoCD:
+Install ArgoCD (use o values-argo.yaml):
 ```bash  
-helm repo add argo https://argoproj.github.io/argo-helmhelm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f values-argo.yaml --wait
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm upgrade --install argocd argo/argo-cd \
+  -n argocd --create-namespace \
+  -f values-argo.yaml \
+  --wait
+  
+#crie o namespace devops (vamos precisar lá na frente)
+kubectl create namespace devops || true  
 ```  
 
 Recover initial password:
 ```bash  
-kubectl get secrets -n argocd argocd-initial-admin-secret -o yamlecho "<ARGOCD_SECRET_BASE64>" | base64 -d
+kubectl get secrets -n argocd argocd-initial-admin-secret -o yaml
+echo "<ARGOCD_SECRET_BASE64>" | base64 -d
 ```  
 
 Login:
@@ -64,18 +83,40 @@ argocd login argocd.localtest.me --insecure --grpc-web \ --username <ARGOCD_USER
 
 ## 3. Actions Runner Controller (ARC)
 
-```bash  
+Pré-requisitos rápidos:
+- Token do GitHub: para usar PAT (Personal Access Token) ele precisa ter:
+- - Classic PAT: repo, admin:org (para runners na organização) e read:org.
+- - OU Fine-grained PAT: habilitar “Self-hosted runners: Read/Write” para a organização (e permitir acesso aos repositórios alvos).
+
+- Em Settings → Runners → Runner groups da organização, confirme:
+- - Default Allow public repositories = ON
+
+Cert-Manager (requerido pelo ARC)
+```bash 
 # Cert-manager  
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.18.2/cert-manager.yaml  
-  
+```
+
+```bash 
 # Helm repo  
 helm repo add actions-runner-controller https://actions-runner-controller.github.io/actions-runner-controller  
-  
+```
+```bash 
 # Deploy do controller  
-helm upgrade --install actions-runner-controller \  
- actions-runner-controller/actions-runner-controller \ -n actions-runner-system \ --create-namespace \ --set=authSecret.create=true \ --set=authSecret.github_token="<GITHUB_PAT>" \ --wait  
+cria o namespace e instala o controller já com o secret do PAT
+helm upgrade --install actions-runner-controller \
+actions-runner-controller/actions-runner-controller \
+-n actions-runner-system \
+--create-namespace \
+--set=authSecret.create=true \
+--set=authSecret.github_token="<SEU_GITHUB_PAT>" \
+--wait
 ```  
 
+```bash
+kubectl -n actions-runner-system get pods
+# deve ver algo como: actions-runner-controller-xxxxx Running (2/2)
+```
 🔄 Runners expire after ~1h. To refresh:
 
 ```bash  
@@ -86,7 +127,7 @@ kubectl -n actions-runner-system rollout restart deploy/actions-runner-controlle
 
 Runner Deployment example:
 
-```yaml  
+```bash  
 kubectl -n actions-runner-system apply -f - <<'YAML'  
 apiVersion: actions.summerwind.dev/v1alpha1  
 kind: RunnerDeployment  
@@ -97,7 +138,7 @@ metadata:
 
 Validate:
 ```bash  
-kubectl -n actions-runner-system get runnerdeployments,runnerreplicasets,runnerskubectl -n actions-runner-system get pods -l actions.github.com/runner-deployment=org-runnerskubectl -n actions-runner-system logs -l actions.github.com/runner-deployment=org-runners -c runner --tail=200 -f
+kubectl get runner -n actions-runner-system
 ```  
 
 # Backstage
@@ -154,7 +195,7 @@ RUN pip3 install mkdocs-techdocs-core
 ```  
 
 2.  Add GitHub Actions plugin:
- ```bash
+```bash
  yarn --cwd packages/app add @backstage-community/plugin-github-actions 
  ```
 

@@ -24,13 +24,8 @@ go.work.sum
 # env file
 .env
 .DS_Store
-workspace.code-workspace
-authentication-service/authentication-service
-logger-service/logger-service
-customer-service/customer-service
 .idea
 .idea/wellpass.iml
 .idea/vcs.xml
 .idea/modules.xml
-provider-service/provider-service
-notification-service/notification-service
+
